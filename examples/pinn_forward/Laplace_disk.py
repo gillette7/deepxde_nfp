@@ -2,9 +2,9 @@
 import deepxde as dde
 import numpy as np
 # Import tf if using backend tensorflow.compat.v1 or tensorflow
-from deepxde.backend import tf
+# from deepxde.backend import tf
 # Import torch if using backend pytorch
-# import torch
+import torch
 # Import paddle if using backend paddle
 # import paddle
 
@@ -36,15 +36,15 @@ net = dde.nn.FNN([2] + [20] * 3 + [1], "tanh", "Glorot normal")
 # Use [r*sin(theta), r*cos(theta)] as features,
 # so that the network is automatically periodic along the theta coordinate.
 # Backend tensorflow.compat.v1 or tensorflow
-def feature_transform(x):
-    return tf.concat(
-        [x[:, 0:1] * tf.sin(x[:, 1:2]), x[:, 0:1] * tf.cos(x[:, 1:2])], axis=1
-    )
-# Backend pytorch
 # def feature_transform(x):
-#     return torch.cat(
-#         [x[:, 0:1] * torch.sin(x[:, 1:2]), x[:, 0:1] * torch.cos(x[:, 1:2])], dim=1
+#     return tf.concat(
+#         [x[:, 0:1] * tf.sin(x[:, 1:2]), x[:, 0:1] * tf.cos(x[:, 1:2])], axis=1
 #     )
+# Backend pytorch
+def feature_transform(x):
+    return torch.cat(
+        [x[:, 0:1] * torch.sin(x[:, 1:2]), x[:, 0:1] * torch.cos(x[:, 1:2])], dim=1
+    )
 # Backend paddle
 # def feature_transform(x):
 #     return paddle.concat(
@@ -55,5 +55,5 @@ net.apply_feature_transform(feature_transform)
 
 model = dde.Model(data, net)
 model.compile("adam", lr=1e-3, metrics=["l2 relative error"])
-losshistory, train_state = model.train(iterations=15000)
+losshistory, train_state = model.train(iterations=10000)
 dde.saveplot(losshistory, train_state, issave=True, isplot=True)

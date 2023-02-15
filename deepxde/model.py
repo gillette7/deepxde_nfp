@@ -607,6 +607,7 @@ class Model:
         self.stop_training = False
         self.train_state.set_data_train(*self.data.train_next_batch(self.batch_size))
         self.train_state.set_data_test(*self.data.test())
+
         self._test()
         self.callbacks.on_train_begin()
         if optimizers.is_external_optimizer(self.opt_name):
@@ -819,7 +820,14 @@ class Model:
                 for m in self.metrics
             ]
 
-        self.train_state.update_best()
+        new_best = self.train_state.update_best()
+        if new_best:
+            best_model_save_path = "/Users/gillette7/Desktop/projects/nfp4va/deepxde_nfp/best_model/best"
+            # print("got new best at step", self.train_state.step)
+            self.save(best_model_save_path, verbose=1)
+        else:
+            print("didn't get new best at step", self.train_state.step)
+
         self.losshistory.append(
             self.train_state.step,
             self.train_state.loss_train,
@@ -1085,6 +1093,9 @@ class TrainState:
         self.best_ystd = None
         self.best_metrics = None
 
+        # Neural network object of best stsate
+        self.best_net = None
+
     def set_data_train(self, X_train, y_train, train_aux_vars=None):
         self.X_train = X_train
         self.y_train = y_train
@@ -1103,6 +1114,9 @@ class TrainState:
             self.best_y = self.y_pred_test
             self.best_ystd = self.y_std_test
             self.best_metrics = self.metrics_test
+            return True
+        else:
+            return False
 
     def disregard_best(self):
         self.best_loss_train = np.inf
