@@ -1,5 +1,5 @@
 ##
-## 3D Laplace equation \Delta u = -1 with zero Dirichlet BCs on [0,1]^3
+## 2D Laplace equation \Delta u = -1 with zero Dirichlet BCs on [0,1]^2
 ##      use "hard constraint option" to get boudary condtions decently enforced
 ##
 
@@ -20,29 +20,29 @@ weights = 100  # if hard_constraint == False
 def pde(x, u):
     du_xx = dde.grad.hessian(u, x, i=0, j=0)
     du_yy = dde.grad.hessian(u, x, i=1, j=1)
-    du_zz = dde.grad.hessian(u, x, i=2, j=2)
-    return du_xx + du_yy + du_zz + 1
+    return du_xx + du_yy + 1
+
+# def solution(x): 
+#     return np.ones_like(x[:,0:1])
 
 
-geom = dde.geometry.Cuboid(xmin=[0, 0, 0], xmax=[1, 1, 1])
+geom = dde.geometry.Rectangle(xmin=[0, 0], xmax=[1, 1])
 
 def boundary(_, on_boundary):
     return on_boundary
 
+
+
 bc_zero = dde.icbc.DirichletBC(geom, lambda x: 0, boundary)
 
 data = dde.data.PDE(
-    geom, pde, bc_zero, num_domain=2000, num_boundary=200
+    geom, pde, bc_zero, num_domain=2540, num_boundary=80
 ) # solution=None
 
-# 20 pts per edge + 2500 pts per face = 15240 pts on boundary (!!!)
-#  5 pts per edge +  400 pts per face = 2460 pts on boundary
-
-
-net = dde.nn.FNN([3] + [20] * 3 + [1], "tanh", "Glorot normal")
+net = dde.nn.FNN([2] + [20] * 3 + [1], "tanh", "Glorot normal")
 
 def transform(x, y):
-    res = x[:, 0:1] * (1 - x[:, 0:1]) * x[:, 1:2] * (1 - x[:, 1:2]) * x[:, 2:3] * (1 - x[:, 2:3])
+    res = x[:, 0:1] * (1 - x[:, 0:1]) * x[:, 1:2] * (1 - x[:, 1:2])
     return res * y
 
 if hard_constraint == True:
