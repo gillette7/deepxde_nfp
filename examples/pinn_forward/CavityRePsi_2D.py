@@ -1,13 +1,20 @@
 import deepxde as dde
 import numpy as np
-from deepxde.backend import tf
+from deepxde.backend import torch
 
 dde.config.set_default_float("float64")
-tf.random.set_random_seed(1234)
 
+print("\n *** Original script sets random seed here (and uses tensor flow) ***\n")
+import time
+time.sleep(1)
 
-epochsADAM = 10000
-epochsLBFGS = 50000
+# tf.random.set_random_seed(1234)
+
+# epochsADAM = 10000
+# epochsLBFGS = 50000
+epochsADAM = 100
+epochsLBFGS = 500
+
 lr = 5.e-4
 interiorpts = 50000
 ReMin = 100
@@ -58,12 +65,12 @@ def output_transform_cavity_flow(inputs, outputs):
 
     bcv = 16 * x * (1 - x) * y * (1 - y)
 
-    ExpB = tf.exp(-(1-y)**2/dy**2)
+    ExpB = torch.exp(-(1-y)**2/dy**2)
 
-    psilid = (y-1)*y**2 * (1-tf.exp(-(x-1)*(x-1)/dx**2)) * (1-tf.exp(-x*x/dx**2))*ExpB
+    psilid = (y-1)*y**2 * (1-torch.exp(-(x-1)*(x-1)/dx**2)) * (1-torch.exp(-x*x/dx**2))*ExpB
 
-    psilid_x = (y-1)*y**2 * ( 2*(x-1)/dx**2*tf.exp(-(x-1)*(x-1)/dx**2) ) * (1-tf.exp(-x*x/dx**2))*ExpB + (y-1)*y**2 * (1-tf.exp(-(x-1)*(x-1)/dx**2)) * ( 2*x/dx**2*tf.exp(-x*x/dx**2) )*ExpB
-    psilid_y = ( y**2 + 2*y*(y-1) ) * (1-tf.exp(-(x-1)*(x-1)/dx**2)) * (1-tf.exp(-x*x/dx**2))*ExpB + psilid*2*(1-y)/dy**2
+    psilid_x = (y-1)*y**2 * ( 2*(x-1)/dx**2*torch.exp(-(x-1)*(x-1)/dx**2) ) * (1-torch.exp(-x*x/dx**2))*ExpB + (y-1)*y**2 * (1-torch.exp(-(x-1)*(x-1)/dx**2)) * ( 2*x/dx**2*torch.exp(-x*x/dx**2) )*ExpB
+    psilid_y = ( y**2 + 2*y*(y-1) ) * (1-torch.exp(-(x-1)*(x-1)/dx**2)) * (1-torch.exp(-x*x/dx**2))*ExpB + psilid*2*(1-y)/dy**2
 
     dbcv_x = 16 * ( 1-2*x ) * y * (1 - y)
     dbcv_y = 16 * x * (1 - x) * ( 1 - 2*y)
@@ -80,7 +87,7 @@ def output_transform_cavity_flow(inputs, outputs):
     p = outputs[:, 2:3]
 
 
-    return tf.concat((u, v, p), axis=1)
+    return torch.cat((u, v, p), axis=1)
 
 
 def main():
