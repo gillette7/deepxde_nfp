@@ -823,6 +823,7 @@ class Model:
         new_best = self.train_state.update_best()
         if new_best:
             best_model_save_path = "/Users/gillette7/Desktop/projects/nfp4va/deepxde_nfp/best_model/best"
+            best_model_save_path = "/usr/workspace/gillette/nfp4va/deepxde_nfp"
             # print("got new best at step", self.train_state.step)
             self.save(best_model_save_path, verbose=1)
         else:

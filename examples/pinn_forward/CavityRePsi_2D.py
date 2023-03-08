@@ -1,3 +1,9 @@
+##
+## Original 2D lid-driven cavity script by 
+##  Christopher McDevitt <cmcdevitt@ufl.edu>
+##  received March 2023
+## 
+
 import deepxde as dde
 import numpy as np
 from deepxde.backend import torch
@@ -36,7 +42,7 @@ def save_solution(geom, model, filename):
 
 
 
-def pde(inputs, outputs):
+def pde(inputs, outputs): # u, v, p
     u, v = outputs[:, 0:1], outputs[:, 1:2]
     du_x = dde.grad.jacobian(outputs, inputs, i=0, j=0)
     du_y = dde.grad.jacobian(outputs, inputs, i=0, j=1)
