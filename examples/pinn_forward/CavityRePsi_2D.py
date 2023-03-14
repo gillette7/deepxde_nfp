@@ -42,7 +42,7 @@ def save_solution(geom, model, filename):
 
 
 
-def pde(inputs, outputs): # u, v, p
+def pde(inputs, outputs): # ((x,y,ReNorm), (u,v,p))
     u, v = outputs[:, 0:1], outputs[:, 1:2]
     du_x = dde.grad.jacobian(outputs, inputs, i=0, j=0)
     du_y = dde.grad.jacobian(outputs, inputs, i=0, j=1)
@@ -66,10 +66,11 @@ def pde(inputs, outputs): # u, v, p
     return loss1, loss2
 
 
-def output_transform_cavity_flow(inputs, outputs):
+def output_transform_cavity_flow(inputs, outputs): # inputs = (x,y,p); outputs = net(x) (I think)
     x, y = inputs[:, 0:1], inputs[:, 1:2]
 
-    bcv = 16 * x * (1 - x) * y * (1 - y)
+    bcv = 16 * x * (1 - x) * y * (1 - y) # boundary condition for v, sort of;
+                                         # taking some algebraic shortcuts to simplify the code
 
     ExpB = torch.exp(-(1-y)**2/dy**2)
 
@@ -78,7 +79,7 @@ def output_transform_cavity_flow(inputs, outputs):
     psilid_x = (y-1)*y**2 * ( 2*(x-1)/dx**2*torch.exp(-(x-1)*(x-1)/dx**2) ) * (1-torch.exp(-x*x/dx**2))*ExpB + (y-1)*y**2 * (1-torch.exp(-(x-1)*(x-1)/dx**2)) * ( 2*x/dx**2*torch.exp(-x*x/dx**2) )*ExpB
     psilid_y = ( y**2 + 2*y*(y-1) ) * (1-torch.exp(-(x-1)*(x-1)/dx**2)) * (1-torch.exp(-x*x/dx**2))*ExpB + psilid*2*(1-y)/dy**2
 
-    dbcv_x = 16 * ( 1-2*x ) * y * (1 - y)
+    dbcv_x = 16 * ( 1-2*x ) * y * (1 - y)  # partial deriv of BC for v w/r/t x
     dbcv_y = 16 * x * (1 - x) * ( 1 - 2*y)
 
     psiprime_x = dde.grad.jacobian(outputs, inputs, i=0, j=0)
