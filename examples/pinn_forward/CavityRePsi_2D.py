@@ -67,6 +67,10 @@ def pde(inputs, outputs): # ((x,y,ReNorm), (u,v,p))
 
 
 def output_transform_cavity_flow(inputs, outputs): # inputs = (x,y,p); outputs = net(x) (I think)
+    print("input shape =", inputs.shape)
+    print("outpt shape =", outputs.shape)
+    print("outputs[:, :1] shape=", outputs[:, :1].shape)
+    exit()
     x, y = inputs[:, 0:1], inputs[:, 1:2]
 
     bcv = 16 * x * (1 - x) * y * (1 - y) # boundary condition for v, sort of;
