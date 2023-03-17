@@ -22,7 +22,7 @@ epochsADAM = 100
 epochsLBFGS = 500
 
 lr = 5.e-4
-interiorpts = 50000
+interiorpts = 10 # 50000
 ReMin = 100
 ReMax = 1000
 
@@ -66,11 +66,15 @@ def pde(inputs, outputs): # ((x,y,ReNorm), (u,v,p))
     return loss1, loss2
 
 
-def output_transform_cavity_flow(inputs, outputs): # inputs = (x,y,p); outputs = net(x) (I think)
+def output_transform_cavity_flow(inputs, outputs): # inputs = (x,y,p); outputs = (u,v,p) = net(x,y,p)
     print("input shape =", inputs.shape)
+    print("inputs =", inputs)
     print("outpt shape =", outputs.shape)
+    print("outputs =", outputs)
     print("outputs[:, :1] shape=", outputs[:, :1].shape)
-    exit()
+    print("outputs[:, :1]=", outputs[:, :1])
+    print("\n ** now calling output_transform_cavity **\n")
+
     x, y = inputs[:, 0:1], inputs[:, 1:2]
 
     bcv = 16 * x * (1 - x) * y * (1 - y) # boundary condition for v, sort of;
@@ -97,6 +101,10 @@ def output_transform_cavity_flow(inputs, outputs): # inputs = (x,y,p); outputs =
     # p
     p = outputs[:, 2:3]
 
+    print("u=",u)
+    print("v=",v)
+    print("p=",p)
+    exit()
 
     return torch.cat((u, v, p), axis=1)
 
@@ -108,6 +116,11 @@ def main():
 
     net = dde.maps.FNN([3] + [64] * 6 + [3], "tanh", "Glorot normal")
     net.apply_output_transform(output_transform_cavity_flow)
+        #
+        # From deepxde/nn/pytorch/nn.py: apply_output_transform does this:
+        #   Apply a transform to the network outputs, i.e.,
+        #   outputs = transform(inputs, outputs).
+        # 
 
     losses = []
 

@@ -11,19 +11,16 @@ from deepxde.backend import torch
 
 dde.config.set_default_float("float64")
 
-print("\n *** Original script sets random seed here (and uses tensor flow) ***\n")
-import time
-time.sleep(1)
-
-# tf.random.set_random_seed(1234)
+# print("\n *** Original script uses tensor flow ***\n")
+torch.manual_seed(1234)
 
 # epochsADAM = 10000
 # epochsLBFGS = 50000
-epochsADAM = 100
+epochsADAM = 1000
 epochsLBFGS = 500
 
 lr = 5.e-4
-interiorpts = 50000
+interiorpts = 2000 # 50000
 ReMin = 100
 ReMax = 1000
 
@@ -78,8 +75,9 @@ def pde(inputs, outputs): # ((x,y,z,ReNorm), (u,v,w,p))
     return loss1, loss2, loss3
 
 
-def output_transform_cavity_flow(inputs, outputs): # inputs = (x,y,z,p); outputs = net(x) (I think)
-                                                   # inputs shape = (interiorpts, 4); outputs shape = (interiorpts, 4)
+def output_transform_cavity_flow_3DVP(inputs, outputs): # inputs  = (x,y,z,p)
+                                                   # outputs = (u,v,w,p) = net(x,y,z,p)
+                                                   # inputs.shape = outputs.shape = (interiorpts, 4)
     x, y, z = inputs[:, 0:1], inputs[:, 1:2], inputs[:, 2:3]
     
     Phix = (1-torch.exp(-(x-1)*(x-1)/eps)) * (1-torch.exp(-x*x/eps))
@@ -88,50 +86,22 @@ def output_transform_cavity_flow(inputs, outputs): # inputs = (x,y,z,p); outputs
     
     b0 = 64 * x * (1 - x) * y * (1 - y) * z * (1-z)
 
-    u = blid + b0 * outputs[:, :1] # indexing for outputs???
-    v = b0 * outputs[:, :1] # indexing for outputs???
-    w = b0 * outputs[:, :1] # indexing for outputs???
+    u = blid + b0 * outputs[:, :1] 
+    v = b0 * outputs[:, 1:2] 
+    w = b0 * outputs[:, 2:3] 
     p = outputs[:, 3:4]
 
     return torch.cat((u, v, w, p), axis=1)
 
-    # bcv = 16 * x * (1 - x) * y * (1 - y) # boundary condition for v, sort of;
-    #                                      # taking some algebraic shortcuts to simplify the code
-
-    # ExpB = torch.exp(-(1-y)**2/dy**2)
-
-    # psilid = (y-1)*y**2 * (1-torch.exp(-(x-1)*(x-1)/dx**2)) * (1-torch.exp(-x*x/dx**2))*ExpB
-
-    # psilid_x = (y-1)*y**2 * ( 2*(x-1)/dx**2*torch.exp(-(x-1)*(x-1)/dx**2) ) * (1-torch.exp(-x*x/dx**2))*ExpB + (y-1)*y**2 * (1-torch.exp(-(x-1)*(x-1)/dx**2)) * ( 2*x/dx**2*torch.exp(-x*x/dx**2) )*ExpB
-    # psilid_y = ( y**2 + 2*y*(y-1) ) * (1-torch.exp(-(x-1)*(x-1)/dx**2)) * (1-torch.exp(-x*x/dx**2))*ExpB + psilid*2*(1-y)/dy**2
-
-    # dbcv_x = 16 * ( 1-2*x ) * y * (1 - y)  # partial deriv of BC for v w/r/t x
-    # dbcv_y = 16 * x * (1 - x) * ( 1 - 2*y)
-
-    # psiprime_x = dde.grad.jacobian(outputs, inputs, i=0, j=0)
-    # psiprime_y = dde.grad.jacobian(outputs, inputs, i=0, j=1)
-    
-
-    # # u
-    # u = psilid_y + 2*bcv*dbcv_y * outputs[:, :1] + bcv**2*psiprime_y
-    # # v
-    # v = -(psilid_x + 2*bcv*dbcv_x * outputs[:, :1] + bcv**2*psiprime_x)
-    # # p
-    # p = outputs[:, 2:3]
-    #
-    # return torch.cat((u, v, p), axis=1)
-
 
 def main():
-    geom = dde.geometry.Rectangle([0, 0, 0], [1, 1, 1])
-    uniform_points = geom.random_points(interiorpts)
-    points = uniform_points
+    geom = dde.geometry.Rectangle([0, 0, 0, 0], [1, 1, 1, 1])
+    points = geom.random_points(interiorpts)
 
-    net = dde.maps.FNN([3] + [64] * 6 + [3], "tanh", "Glorot normal")
-    net.apply_output_transform(output_transform_cavity_flow)
+    net = dde.maps.FNN([4] + [64] * 6 + [4], "tanh", "Glorot normal")
+    net.apply_output_transform(output_transform_cavity_flow_3DVP)
 
     losses = []
-
 
     data = dde.data.PDE(
         geom,
@@ -139,21 +109,21 @@ def main():
         losses,
         num_domain=0,
         num_boundary=0,
-        num_test=2**15,
+        num_test=200,   #2**15,
         anchors = points
     )
 
     model = dde.Model(data, net)
 
 
-    loss_weights = [1] * 2
-    loss = ["MSE"] * 2
+    loss_weights = [1] * 3
+    loss = ["MSE"] * 3
     model.compile("adam", lr=lr, loss=loss, loss_weights=loss_weights)
     losshistory, train_state = model.train(epochs=epochsADAM)
 
     model.compile("L-BFGS-B", loss=loss, loss_weights=loss_weights)
 
-
+    # Note: _train_step(...) in model.py doesn't have options for aux vbls
     model.train_step.optimizer_kwargs = {'options': {'maxcor': 150,
                                                      'ftol': 1.0 * np.finfo(float).eps,
                                                      'gtol': 1.0 * np.finfo(float).eps,
@@ -162,7 +132,7 @@ def main():
                                                      'maxls': 200}}
 
 
-    losshistory, train_state = model.train(model_save_path="./model.ckpt")
+    losshistory, train_state = model.train(model_save_path="./model_ldc_3d.ckpt")
     save_solution(geom, model, "./solution0")
 
     dde.saveplot(losshistory, train_state, issave=True, isplot=True)
