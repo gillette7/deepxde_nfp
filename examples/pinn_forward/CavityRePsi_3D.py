@@ -16,8 +16,8 @@ torch.manual_seed(1234)
 
 # epochsADAM = 10000
 # epochsLBFGS = 50000
-epochsADAM = 1000
-epochsLBFGS = 500
+epochsADAM = 10
+epochsLBFGS = 50
 
 lr = 5.e-4
 interiorpts = 2000 # 50000
@@ -118,20 +118,22 @@ def main():
 
     loss_weights = [1] * 3
     loss = ["MSE"] * 3
+
+    dde.optimizers.set_LBFGS_options(
+            maxcor=150,
+            ftol=1.0 * np.finfo(float).eps,
+            gtol=1.0 * np.finfo(float).eps,
+            maxiter=epochsLBFGS,
+            maxfun= epochsLBFGS,
+            maxls=200
+            )
+    print("\n==> Set these LBFGS options: ", dde.optimizers.LBFGS_options, "\n")
+    print("\n==> Compling with adam...")
     model.compile("adam", lr=lr, loss=loss, loss_weights=loss_weights)
     losshistory, train_state = model.train(epochs=epochsADAM)
-
+    print("\n==> Compling with L-BFGS-B...")
     model.compile("L-BFGS-B", loss=loss, loss_weights=loss_weights)
-
-    # Note: _train_step(...) in model.py doesn't have options for aux vbls
-    model.train_step.optimizer_kwargs = {'options': {'maxcor': 150,
-                                                     'ftol': 1.0 * np.finfo(float).eps,
-                                                     'gtol': 1.0 * np.finfo(float).eps,
-                                                     'maxiter': epochsLBFGS,
-                                                     'maxfun':  epochsLBFGS,
-                                                     'maxls': 200}}
-
-
+    print("\n==> Training...")
     losshistory, train_state = model.train(model_save_path="./model_ldc_3d.ckpt")
     save_solution(geom, model, "./solution0")
 
@@ -140,3 +142,14 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+## syntax from 2D version, using tensorflow
+#
+# Note: _train_step(...) in model.py doesn't have options for aux vbls
+# model.train_step.optimizer_kwargs = {'options': {'maxcor': 150,
+                                                #  'ftol': 1.0 * np.finfo(float).eps,
+                                                #  'gtol': 1.0 * np.finfo(float).eps,
+                                                #  'maxiter': epochsLBFGS,
+                                                #  'maxfun':  epochsLBFGS,
+                                                #  'maxls': 200}}

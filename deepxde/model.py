@@ -330,6 +330,7 @@ class Model:
                     "backend pytorch."
                 )
 
+        # Alternately: could add aux variable support here for pytorch
         def train_step(inputs, targets):
             def closure():
                 losses = outputs_losses_train(inputs, targets)[1]
@@ -535,7 +536,7 @@ class Model:
         elif backend_name in ["tensorflow", "paddle"]:
             self.train_step(inputs, targets, auxiliary_vars)
         elif backend_name == "pytorch":
-            # TODO: auxiliary_vars
+            # TODO: auxiliary_vars; also need to add in def train_step for pytorch (line ~333)
             self.train_step(inputs, targets)
         elif backend_name == "jax":
             # TODO: auxiliary_vars
@@ -730,9 +731,7 @@ class Model:
 
     def _train_pytorch_lbfgs(self):
         prev_n_iter = 0
-        print("*** HARD CODING MAX IT HERE ***")
-        # while prev_n_iter < optimizers.LBFGS_options["maxiter"]:
-        while prev_n_iter < 100:
+        while prev_n_iter < optimizers.LBFGS_options["maxiter"]:
             self.callbacks.on_epoch_begin()
             self.callbacks.on_batch_begin()
 
@@ -1096,8 +1095,13 @@ class TrainState:
         self.best_ystd = None
         self.best_metrics = None
 
-        # Neural network object of best stsate
+        # Neural network object of best state
         self.best_net = None
+
+        # Pytorch max iterations 
+        #   ==> see tensorflow implementation for template on how to integrate arbitary 
+        #       auxiliary variable options for external optimizer packages
+        self.pytorch_max_it = 100 
 
     def set_data_train(self, X_train, y_train, train_aux_vars=None):
         self.X_train = X_train
