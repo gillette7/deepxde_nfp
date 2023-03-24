@@ -16,6 +16,7 @@ from .backend import backend_name, tf, torch, jax, paddle
 from .callbacks import CallbackList
 from .utils import list_to_str
 
+from os.path import exists
 
 class Model:
     """A ``Model`` trains a ``NN`` on a ``Data``.
@@ -825,7 +826,7 @@ class Model:
         if new_best:
             best_model_save_path = "/Users/gillette7/Desktop/projects/nfp4va/deepxde_nfp/best_model/best"
             # best_model_save_path = "/usr/workspace/gillette/nfp4va/deepxde_nfp"
-            # print("got new best at step", self.train_state.step)
+            print("got new best at step", self.train_state.step)
             self.save(best_model_save_path, verbose=1)
         else:
             print("didn't get new best at step", self.train_state.step)

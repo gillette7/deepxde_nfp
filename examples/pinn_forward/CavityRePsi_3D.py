@@ -9,6 +9,7 @@
 
 	# {"model": "deepxde", "filename": "net_dde.pt", "pinn_driver_file": "examples.pinn_forward.CavityRePsi_3D", "net_arch": "fnn_4_64_6_4_tanh_glorot"}
 
+# TODO: Add in cuda functionality
 
 import deepxde as dde
 import numpy as np
@@ -21,13 +22,13 @@ torch.manual_seed(1234)
 
 # epochsADAM = 10000
 # epochsLBFGS = 50000
-epochsADAM = 10
-epochsLBFGS = 50
+epochsADAM = 1000
+epochsLBFGS = 5000
 
 lr = 5.e-4
-interiorpts = 2000 # 50000
+interiorpts = 5000 # 50000
 ReMin = 100
-ReMax = 1000
+ReMax = 300 # 1000
 
 eps = np.sqrt(1.e-3)
 
@@ -118,6 +119,7 @@ def main():
     points = geom.random_points(interiorpts)
 
     net = dde.maps.FNN([4] + [64] * 6 + [4], "tanh", "Glorot normal")
+    # net.cuda()
     net.apply_output_transform(output_transform_cavity_flow_3DVP)
 
     losses = []
