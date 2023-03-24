@@ -67,5 +67,5 @@ else:
     )
 
 
-losshistory, train_state = model.train(iterations=10000)
+losshistory, train_state = model.train(iterations=1000)
 dde.saveplot(losshistory, train_state, issave=True, isplot=True)

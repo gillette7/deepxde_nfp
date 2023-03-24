@@ -5,6 +5,11 @@
 ##  Christopher McDevitt <cmcdevitt@ufl.edu> and colleagues
 ## 
 
+# This file needs to make a json that does this:
+
+	# {"model": "deepxde", "filename": "net_dde.pt", "pinn_driver_file": "examples.pinn_forward.CavityRePsi_3D", "net_arch": "fnn_4_64_6_4_tanh_glorot"}
+
+
 import deepxde as dde
 import numpy as np
 from deepxde.backend import torch
@@ -78,7 +83,14 @@ def pde(inputs, outputs): # ((x,y,z,ReNorm), (u,v,w,p))
 def output_transform_cavity_flow_3DVP(inputs, outputs): # inputs  = (x,y,z,p)
                                                    # outputs = (u,v,w,p) = net(x,y,z,p)
                                                    # inputs.shape = outputs.shape = (interiorpts, 4)
-    x, y, z = inputs[:, 0:1], inputs[:, 1:2], inputs[:, 2:3]
+    
+
+    # x, y, z = inputs[:, 0:1], inputs[:, 1:2], inputs[:, 2:3]
+    x, y, z = inputs[..., 0:1], inputs[..., 1:2], inputs[..., 2:3]
+
+    # print("x shape", x.shape)
+    # print("y shape", y.shape)
+    # print("z shape", z.shape)
     
     Phix = (1-torch.exp(-(x-1)*(x-1)/eps)) * (1-torch.exp(-x*x/eps))
     Phiy = (1-torch.exp(-(y-1)*(y-1)/eps)) * (1-torch.exp(-y*y/eps))
@@ -86,12 +98,19 @@ def output_transform_cavity_flow_3DVP(inputs, outputs): # inputs  = (x,y,z,p)
     
     b0 = 64 * x * (1 - x) * y * (1 - y) * z * (1-z)
 
-    u = blid + b0 * outputs[:, :1] 
-    v = b0 * outputs[:, 1:2] 
-    w = b0 * outputs[:, 2:3] 
-    p = outputs[:, 3:4]
+    u = blid + b0 * outputs[..., :1] 
+    v = b0 * outputs[..., 1:2] 
+    w = b0 * outputs[..., 2:3] 
+    p = outputs[..., 3:4]
+    # if p.shape[1] == 0: # if no pressure data was provided, which happens when doing viz
+    #     p = torch.zeros_like(u)
+    # print("\nu shape", u.shape)
+    # print("v shape", v.shape)
+    # print("w shape", w.shape)
+    # print("p shape", p.shape)
+    # print("return shape:",torch.cat((u, v, w, p), axis=-1).shape,"\n" )
 
-    return torch.cat((u, v, w, p), axis=1)
+    return torch.cat((u, v, w, p), axis=-1)
 
 
 def main():
@@ -143,6 +162,8 @@ def main():
 if __name__ == "__main__":
     main()
 
+
+# need to save: net, output_transform, 
 
 ## syntax from 2D version, using tensorflow
 #

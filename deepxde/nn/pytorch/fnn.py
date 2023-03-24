@@ -36,12 +36,17 @@ class FNN(NN):
         x = inputs
         if self._input_transform is not None:
             x = self._input_transform(x)
+        
+        # print("type x 4:", x.dtype, type(x), x.shape)
+        
         for j, linear in enumerate(self.linears[:-1]):
+            # print("type x 5:", x.dtype, type(x), x.shape)
             x = (
                 self.activation[j](linear(x))
                 if isinstance(self.activation, list)
                 else self.activation(linear(x))
             )
+        
         x = self.linears[-1](x)
         if self._output_transform is not None:
             x = self._output_transform(inputs, x)
