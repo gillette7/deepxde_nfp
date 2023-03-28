@@ -82,7 +82,7 @@ def pde(inputs, outputs): # ((x,y,z,ReNorm), (u,v,w,p))
 
 
 def output_transform_cavity_flow_3DVP(inputs, outputs): # inputs  = (x,y,z,p)
-                                                   # outputs = (u,v,w,p) = net(x,y,z,p)
+                                                   # outputs = net(x,y,z,p) = (u,v,w,p) before transform
                                                    # inputs.shape = outputs.shape = (interiorpts, 4)
     
 

@@ -1,0 +1,1 @@
+{"model": "deepxde", "filename": "net_dde.pt",  "pinn_driver_file": "examples.pinn_forward.CavityRePsi_3D", "net_arch": "fnn_4_64_6_4_tanh_glorot"}
