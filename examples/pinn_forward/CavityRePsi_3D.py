@@ -22,13 +22,13 @@ torch.manual_seed(1234)
 
 # epochsADAM = 10000
 # epochsLBFGS = 50000
-epochsADAM = 1000
-epochsLBFGS = 5000
+epochsADAM = 20000
+epochsLBFGS = 100000
 
 lr = 5.e-4
-interiorpts = 5000 # 50000
-ReMin = 100
-ReMax = 300 # 1000
+interiorpts = 100000 # 50000
+ReMin = 900
+ReMax = 1100 # 1000
 
 eps = np.sqrt(1.e-3)
 
@@ -119,7 +119,7 @@ def main():
     points = geom.random_points(interiorpts)
 
     net = dde.maps.FNN([4] + [64] * 6 + [4], "tanh", "Glorot normal")
-    # net.cuda()
+    net.cuda()
     net.apply_output_transform(output_transform_cavity_flow_3DVP)
 
     losses = []
@@ -130,7 +130,7 @@ def main():
         losses,
         num_domain=0,
         num_boundary=0,
-        num_test=200,   #2**15,
+        num_test=2**15,   #2**15,
         anchors = points
     )
 
