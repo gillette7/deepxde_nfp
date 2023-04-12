@@ -20,13 +20,13 @@ dde.config.set_default_float("float64")
 # print("\n *** Original script uses tensor flow ***\n")
 torch.manual_seed(1234)
 
-# epochsADAM = 10000
-# epochsLBFGS = 50000
-epochsADAM = 20000
-epochsLBFGS = 100000
+epochsADAM = 10000
+epochsLBFGS = 50000
+# epochsADAM = 20000
+# epochsLBFGS = 100000
 
 lr = 5.e-4
-interiorpts = 100000 # 50000
+interiorpts = 50000 # 50000
 ReMin = 900
 ReMax = 1100 # 1000
 
@@ -76,9 +76,9 @@ def pde(inputs, outputs): # ((x,y,z,ReNorm), (u,v,w,p))
     loss1 = ( u*du_x + v*du_y + w*du_z - (1/Re)*(du_xx + du_yy + du_zz) + dp_x )
     loss2 = ( u*dv_x + v*dv_y + w*dv_z - (1/Re)*(dv_xx + dv_yy + dv_zz) + dp_y )
     loss3 = ( u*dw_x + v*dw_y + w*dw_z - (1/Re)*(dw_xx + dw_yy + dw_zz) + dp_z )
-    #loss4 = (du_x + dv_y + dw_z)
+    loss4 = (du_x + dv_y + dw_z)
 
-    return loss1, loss2, loss3
+    return loss1, loss2, loss3, loss4
 
 
 def output_transform_cavity_flow_3DVP(inputs, outputs): # inputs  = (x,y,z,p)
@@ -137,8 +137,8 @@ def main():
     model = dde.Model(data, net)
 
 
-    loss_weights = [1] * 3
-    loss = ["MSE"] * 3
+    loss_weights = [1] * 4
+    loss = ["MSE"] * 4
 
     dde.optimizers.set_LBFGS_options(
             maxcor=150,
