@@ -18,13 +18,13 @@ time.sleep(1)
 
 # epochsADAM = 10000
 # epochsLBFGS = 50000
-epochsADAM = 100
-epochsLBFGS = 500
+epochsADAM = 1000
+epochsLBFGS = 5000
 
 lr = 5.e-4
-interiorpts = 10 # 50000
-ReMin = 100
-ReMax = 1000
+interiorpts = 10000 # 50000
+ReMin = 400 # 100
+ReMax = 600 # 1000
 
 dx = np.sqrt(1.e-3)
 dy = np.sqrt(1.e-2)
@@ -67,13 +67,13 @@ def pde(inputs, outputs): # ((x,y,ReNorm), (u,v,p))
 
 
 def output_transform_cavity_flow(inputs, outputs): # inputs = (x,y,p); outputs = (u,v,p) = net(x,y,p)
-    print("input shape =", inputs.shape)
-    print("inputs =", inputs)
-    print("outpt shape =", outputs.shape)
-    print("outputs =", outputs)
-    print("outputs[:, :1] shape=", outputs[:, :1].shape)
-    print("outputs[:, :1]=", outputs[:, :1])
-    print("\n ** now calling output_transform_cavity **\n")
+    # print("input shape =", inputs.shape)
+    # print("inputs =", inputs)
+    # print("outpt shape =", outputs.shape)
+    # print("outputs =", outputs)
+    # print("outputs[:, :1] shape=", outputs[:, :1].shape)
+    # print("outputs[:, :1]=", outputs[:, :1])
+    # print("\n ** now calling output_transform_cavity **\n")
 
     x, y = inputs[:, 0:1], inputs[:, 1:2]
 
@@ -101,10 +101,10 @@ def output_transform_cavity_flow(inputs, outputs): # inputs = (x,y,p); outputs =
     # p
     p = outputs[:, 2:3]
 
-    print("u=",u)
-    print("v=",v)
-    print("p=",p)
-    exit()
+    # print("u=",u)
+    # print("v=",v)
+    # print("p=",p)
+    # exit()
 
     return torch.cat((u, v, p), axis=1)
 

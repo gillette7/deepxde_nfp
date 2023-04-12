@@ -33,12 +33,12 @@ ReMax = 1100 # 1000
 eps = np.sqrt(1.e-3)
 
 def save_solution(geom, model, filename):
-    x = geom.uniform_points(80**3)
+    x = geom.uniform_points(27**4)
     y_pred = model.predict(x)
     print("Saving u and p ...\n")
     np.savetxt(filename + "_fine.dat", np.hstack((x, y_pred)))
 
-    x = geom.uniform_points(20**3)
+    x = geom.uniform_points(10**4)
     y_pred = model.predict(x)
     print("Saving u and p ...\n")
     np.savetxt(filename + "_coarse.dat", np.hstack((x, y_pred)))
