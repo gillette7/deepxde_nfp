@@ -15,6 +15,7 @@ from . import utils
 from .backend import backend_name, tf, torch, jax, paddle
 from .callbacks import CallbackList
 from .utils import list_to_str
+from .utils import saveplot
 
 from os.path import exists
 
@@ -292,7 +293,7 @@ class Model:
             losses = losses_fn(targets, outputs_, loss_fn, inputs, self)
             if not isinstance(losses, list):
                 losses = [losses]
-            losses = torch.stack(losses)
+            losses = torch.stack(losses) # 1D tensor of lossses
             # Weighted losses
             if loss_weights is not None:
                 losses *= torch.as_tensor(loss_weights)
@@ -837,6 +838,11 @@ class Model:
             self.train_state.loss_test,
             self.train_state.metrics_test,
         )
+
+        continually_save_loss_history = True
+        if continually_save_loss_history:
+            saveplot(self.losshistory, self.train_state, issave=True, isplot=False)
+        
 
         if (
             np.isnan(self.train_state.loss_train).any()
