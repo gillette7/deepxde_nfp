@@ -23,22 +23,22 @@ epochsLBFGS = 5000
 
 lr = 5.e-4
 interiorpts = 10000 # 50000
-ReMin = 400 # 100
-ReMax = 600 # 1000
+ReMin = 100  # 100
+ReMax = 5000 # 1000
 
 dx = np.sqrt(1.e-3)
 dy = np.sqrt(1.e-2)
 
-def save_solution(geom, model, filename):
-    x = geom.uniform_points(80**3)
-    y_pred = model.predict(x)
-    print("Saving u and p ...\n")
-    np.savetxt(filename + "_fine.dat", np.hstack((x, y_pred)))
+# def save_solution(geom, model, filename):
+#     x = geom.uniform_points(80**3)
+#     y_pred = model.predict(x)
+#     print("Saving u and p ...\n")
+#     np.savetxt(filename + "_fine.dat", np.hstack((x, y_pred)))
 
-    x = geom.uniform_points(20**3)
-    y_pred = model.predict(x)
-    print("Saving u and p ...\n")
-    np.savetxt(filename + "_coarse.dat", np.hstack((x, y_pred)))
+#     x = geom.uniform_points(20**3)
+#     y_pred = model.predict(x)
+#     print("Saving u and p ...\n")
+#     np.savetxt(filename + "_coarse.dat", np.hstack((x, y_pred)))
 
 
 
@@ -154,10 +154,12 @@ def main():
                                                      'maxls': 200}}
 
 
-    losshistory, train_state = model.train(model_save_path="./model.ckpt")
-    save_solution(geom, model, "./solution0")
+    chkpt_save_prefix = "ldc_2D_Re_"+str(ReMin)+"-"+str(ReMax)+"_ckpt"
+    losshistory, train_state = model.train(model_save_path=chkpt_save_prefix)
+    
+    # save_solution(geom, model, "./solution0")
 
-    dde.saveplot(losshistory, train_state, issave=True, isplot=True)
+    # dde.saveplot(losshistory, train_state, issave=True, isplot=True)
 
 
 if __name__ == "__main__":
