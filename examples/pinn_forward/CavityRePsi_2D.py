@@ -22,7 +22,7 @@ epochsADAM = 1000
 epochsLBFGS = 5000
 
 lr = 5.e-4
-interiorpts = 10000 # 50000
+interiorpts = 1000 # 50000
 ReMin = 100  # 100
 ReMax = 5000 # 1000
 

@@ -155,24 +155,14 @@ def main():
     print("\n==> Compling with L-BFGS-B...")
     model.compile("L-BFGS-B", loss=loss, loss_weights=loss_weights)
     print("\n==> Training...")
-    losshistory, train_state = model.train(model_save_path="./model_ldc_3d.ckpt")
-    save_solution(geom, model, "./solution0")
 
-    dde.saveplot(losshistory, train_state, issave=True, isplot=True)
+
+    chkpt_save_prefix = "ldc_3D_Re_"+str(ReMin)+"-"+str(ReMax)+"_ckpt"
+    losshistory, train_state = model.train(model_save_path=chkpt_save_prefix)
+ 
+    # save_solution(geom, model, "./solution0")
+    # dde.saveplot(losshistory, train_state, issave=True, isplot=True)
 
 
 if __name__ == "__main__":
     main()
-
-
-# need to save: net, output_transform, 
-
-## syntax from 2D version, using tensorflow
-#
-# Note: _train_step(...) in model.py doesn't have options for aux vbls
-# model.train_step.optimizer_kwargs = {'options': {'maxcor': 150,
-                                                #  'ftol': 1.0 * np.finfo(float).eps,
-                                                #  'gtol': 1.0 * np.finfo(float).eps,
-                                                #  'maxiter': epochsLBFGS,
-                                                #  'maxfun':  epochsLBFGS,
-                                                #  'maxls': 200}}
