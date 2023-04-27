@@ -19,19 +19,21 @@ torch.manual_seed(torchseed)
 
 epochsADAM = 10000
 epochsLBFGS = 50000
-# epochsADAM = 20000
-# epochsLBFGS = 100000
+# # epochsADAM = 20000
+# # epochsLBFGS = 100000
 
+chkpt_save_prefix = 'net_ldc_3d'
 lr = 5.e-4
-num_anchor_pts = 50000 
-num_test_pts = 2**15 
+num_anchor_pts = 50000 # 100
+num_test_pts = 2**15  # 2**10
 ReMin = 900
 ReMax = 1100 # 1000
 eps = np.sqrt(1.e-3)
+ReViz = 0.5
 
 ldc_config = {
     'model': 'deepxde', 
-    'filename' : 'net_dde.pt', 
+    'chkpt_prefix' : chkpt_save_prefix,
     'pinn_driver_file': 'examples.pinn_forward.CavityRePsi_3D',
     'net_arch' : 'fnn_4_64_6_4_tanh_glorot',
     'epochsADAM' : epochsADAM,
@@ -42,7 +44,8 @@ ldc_config = {
     'ReMin' : ReMin,
     'ReMax' : ReMax,
     'eps' : eps,
-    'seed' : torchseed
+    'seed' : torchseed,
+    'ReViz' : ReViz
 }
 
 json_save_dir = os.getcwd()
@@ -162,8 +165,6 @@ def main():
     model.compile("L-BFGS-B", loss=loss, loss_weights=loss_weights)
     print("\n==> Training...")
 
-
-    chkpt_save_prefix = "ldc_3d"
     losshistory, train_state = model.train(model_save_path=chkpt_save_prefix)
  
     # save_solution(geom, model, "./solution0")
