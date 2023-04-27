@@ -163,7 +163,7 @@ def main():
     print("\n==> Training...")
 
 
-    chkpt_save_prefix = "ldc_3D_Re_"+str(ReMin)+"-"+str(ReMax)+"_ckpt"
+    chkpt_save_prefix = "ldc_3d"
     losshistory, train_state = model.train(model_save_path=chkpt_save_prefix)
  
     # save_solution(geom, model, "./solution0")
