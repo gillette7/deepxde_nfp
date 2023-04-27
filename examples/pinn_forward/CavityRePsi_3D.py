@@ -1,16 +1,12 @@
 ##
 ## 3D lid-driven cavity PINN
-##  Andrew Gillette, Matthew Berger, Josh Levine
+##  Matthew Berger, Andrew Gillette, Josh Levine
 ##  based on 2D script by
 ##  Christopher McDevitt <cmcdevitt@ufl.edu> and colleagues
 ## 
 
-# This file needs to make a json that does this:
-
-	# {"model": "deepxde", "filename": "net_dde.pt", "pinn_driver_file": "examples.pinn_forward.CavityRePsi_3D", "net_arch": "fnn_4_64_6_4_tanh_glorot"}
-
-# TODO: Add in cuda functionality
-
+import os
+import json
 import deepxde as dde
 import numpy as np
 from deepxde.backend import torch
@@ -18,7 +14,8 @@ from deepxde.backend import torch
 dde.config.set_default_float("float64")
 
 # print("\n *** Original script uses tensor flow ***\n")
-torch.manual_seed(1234)
+torchseed = 1234
+torch.manual_seed(torchseed)
 
 epochsADAM = 10000
 epochsLBFGS = 50000
@@ -26,22 +23,42 @@ epochsLBFGS = 50000
 # epochsLBFGS = 100000
 
 lr = 5.e-4
-interiorpts = 50000 # 50000
+num_anchor_pts = 50000 
+num_test_pts = 2**15 
 ReMin = 900
 ReMax = 1100 # 1000
-
 eps = np.sqrt(1.e-3)
 
-def save_solution(geom, model, filename):
-    x = geom.uniform_points(27**4)
-    y_pred = model.predict(x)
-    print("Saving u and p ...\n")
-    np.savetxt(filename + "_fine.dat", np.hstack((x, y_pred)))
+ldc_config = {
+    'model': 'deepxde', 
+    'filename' : 'net_dde.pt', 
+    'pinn_driver_file': 'examples.pinn_forward.CavityRePsi_3D',
+    'net_arch' : 'fnn_4_64_6_4_tanh_glorot',
+    'epochsADAM' : epochsADAM,
+    'epochsLBFGS' : epochsLBFGS,
+    'lr' : lr,
+    'num_anchor_pts' : num_anchor_pts,
+    'num_test_pts' : num_test_pts,
+    'ReMin' : ReMin,
+    'ReMax' : ReMax,
+    'eps' : eps,
+    'seed' : torchseed
+}
 
-    x = geom.uniform_points(10**4)
-    y_pred = model.predict(x)
-    print("Saving u and p ...\n")
-    np.savetxt(filename + "_coarse.dat", np.hstack((x, y_pred)))
+json_save_dir = os.getcwd()
+with open(json_save_dir+"/ldc_config.json", 'w') as f: 
+    json.dump(ldc_config,f)
+
+# def save_solution(geom, model, filename):
+#     x = geom.uniform_points(27**4)
+#     y_pred = model.predict(x)
+#     print("Saving u and p ...\n")
+#     np.savetxt(filename + "_fine.dat", np.hstack((x, y_pred)))
+
+#     x = geom.uniform_points(10**4)
+#     y_pred = model.predict(x)
+#     print("Saving u and p ...\n")
+#     np.savetxt(filename + "_coarse.dat", np.hstack((x, y_pred)))
 
 
 
@@ -83,15 +100,11 @@ def pde(inputs, outputs): # ((x,y,z,ReNorm), (u,v,w,p))
 
 def output_transform_cavity_flow_3DVP(inputs, outputs): # inputs  = (x,y,z,p)
                                                    # outputs = net(x,y,z,p) = (u,v,w,p) before transform
-                                                   # inputs.shape = outputs.shape = (interiorpts, 4)
+                                                   # inputs.shape = outputs.shape = (num_anchor_pts, 4)
     
 
     # x, y, z = inputs[:, 0:1], inputs[:, 1:2], inputs[:, 2:3]
     x, y, z = inputs[..., 0:1], inputs[..., 1:2], inputs[..., 2:3]
-
-    # print("x shape", x.shape)
-    # print("y shape", y.shape)
-    # print("z shape", z.shape)
     
     Phix = (1-torch.exp(-(x-1)*(x-1)/eps)) * (1-torch.exp(-x*x/eps))
     Phiy = (1-torch.exp(-(y-1)*(y-1)/eps)) * (1-torch.exp(-y*y/eps))
@@ -103,20 +116,13 @@ def output_transform_cavity_flow_3DVP(inputs, outputs): # inputs  = (x,y,z,p)
     v = b0 * outputs[..., 1:2] 
     w = b0 * outputs[..., 2:3] 
     p = outputs[..., 3:4]
-    # if p.shape[1] == 0: # if no pressure data was provided, which happens when doing viz
-    #     p = torch.zeros_like(u)
-    # print("\nu shape", u.shape)
-    # print("v shape", v.shape)
-    # print("w shape", w.shape)
-    # print("p shape", p.shape)
-    # print("return shape:",torch.cat((u, v, w, p), axis=-1).shape,"\n" )
 
     return torch.cat((u, v, w, p), axis=-1)
 
 
 def main():
     geom = dde.geometry.Rectangle([0, 0, 0, 0], [1, 1, 1, 1])
-    points = geom.random_points(interiorpts)
+    anchor_pts = geom.random_points(num_anchor_pts)
 
     net = dde.maps.FNN([4] + [64] * 6 + [4], "tanh", "Glorot normal")
     net.cuda()
@@ -130,8 +136,8 @@ def main():
         losses,
         num_domain=0,
         num_boundary=0,
-        num_test=2**15,   #2**15,
-        anchors = points
+        num_test=num_test_pts, 
+        anchors = anchor_pts
     )
 
     model = dde.Model(data, net)
