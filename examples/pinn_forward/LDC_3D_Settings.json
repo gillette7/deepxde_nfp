@@ -1,0 +1,23 @@
+{
+	"Checkpoint_name" 	: "net_ldc_3d",
+	"Architecture" 		: [4, 64, 64, 64, 64, 64, 64, 4],
+	"Domain"			:
+		{
+			"x"			: [0,1],
+			"y"			: [0,1],
+			"z"			: [0,1]
+		},
+	"Num_Adam_Epochs"	: 50000,
+	"Num_LBFGS_Epochs"  : 100000,
+	"Learning_rate"		: 5e-4,
+	"Seed"				: 1234,
+	"num_anchor_pts"	: 10000,
+	"num_domain_pts"	: 50000,
+	"num_test_pts"		: 38416,
+	"Reynolds_min"		: 900,
+	"Reynolds_max"		: 1100,
+	"Reynolds_viz"		: 0.5,
+	"eps"				: 0.03162
+
+}
+	
